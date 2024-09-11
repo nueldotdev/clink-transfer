@@ -1,0 +1,13 @@
+/* Layout.css */
+.layout {
+  display: flex;
+}
+
+.sidenav ul {
+  list-style-type: none;
+  padding: 0;
+}
+
+.main-content {
+  flex-grow: 1;
+}

@@ -1,0 +1,76 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+
+@layer components {
+  .btn {
+    @apply px-6 py-2 rounded-full transition max-md:px-1 max-md:py-2
+  }
+
+  .btnhover {
+    @apply hover:bg-lightest hover:text-brand 
+  }
+
+  .login-btn {
+    @apply btn bg-transparent text-darkest border-gray-700 border hover:bg-sky-600 hover:text-lightest hover:border-sky-600
+  }
+
+  .sign-btn {
+    @apply btn bg-darkest text-lightest hover:bg-green-600
+  }
+
+  .sign-free {
+    @apply sign-btn px-8 py-4 hover:bg-brand font-semibold text-lg
+    /* hover:bg-orange-600 */
+  }
+
+  .input-bx {
+    @apply rounded-md w-full p-2 placeholder:text-gray-400 text-black bg-neutral-100 focus:border-brand focus:outline-none border border-transparent
+  }
+
+  .shadow-box {
+    box-shadow: 5px 5px 1px rgba(43, 42, 42, 0.212);
+    transition: .3s;
+
+    @apply rounded-xl
+  }
+
+  .sm-screen {
+    box-shadow: 0 0 1px rgba(43, 42, 42, 0.212);
+    transition: .3s;
+    transform: rotate(5deg);
+  }
+
+  .shadow-box:hover {
+    box-shadow: 0 0 1px rgba(43, 42, 42, 0.212);
+    transform: rotate(5deg);
+  }
+
+  .logo-text {
+    animation-name: colored;
+    animation-duration: 3s;
+    animation-timing-function: ease-in-out;
+    animation-iteration-count: infinite;
+    animation-direction: alternate;
+    animation-delay: 0.5s;
+
+    @apply font-bold text-2xl text-dark italic
+  }
+
+
+  @keyframes colored {
+    0% {
+      @apply text-darkest
+    }
+    35% {
+      @apply text-orange-500
+    }
+    70% {
+      @apply text-green-500
+    }
+    100% {
+      @apply text-brand
+    }
+  }
+}
