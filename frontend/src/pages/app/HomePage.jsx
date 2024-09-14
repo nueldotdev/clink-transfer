@@ -1,7 +1,12 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useContext } from "react";
+import { useNavigate } from "react-router-dom";
 import DeviceCard from "../../components/DeviceCard";
 import { IoClose } from "react-icons/io5";
 import platform from "platform";
+import api from "../../utils/axios";
+import { UserContext } from "../../context/UserContext";
+
+
 
 const deviceList = [
   {
@@ -36,7 +41,6 @@ function getDeviceInfo() {
     platform: platform.os.family,       // e.g., 'iOS', 'Windows', 'Android'
     version: platform.os.version,       // OS version
     architecture: platform.os.architecture,  // 32-bit or 64-bit
-    browser: platform.name,             // e.g., 'Chrome', 'Safari'
     deviceType: platform.product,       // Device type like 'iPhone', 'Galaxy'
     cores: navigator.hardwareConcurrency || 'N/A', // Number of CPU cores
     memory: navigator.deviceMemory || 'N/A',  // Total device memory
@@ -55,10 +59,30 @@ function getDeviceInfo() {
 
 
 const HomePage = () => {
+  const { user, setUser } = useContext(UserContext);
+
   const [devices, setDevices] = useState(deviceList);
   const [selectedDevice, setSelectedDevice] = useState(null);
 
   console.log("Device details: ", getDeviceInfo())
+
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const token = localStorage.getItem('authToken');
+    const user_id = localStorage.getItem('user_id');
+
+    if (!token || !user_id) {
+      navigate('/login');
+    } else {
+      const getUserInfo = async () => {
+        const response = await api.get(`/users/${user_id}`);
+        console.log(response.data);
+        setUser(response.data.user);
+      }
+      getUserInfo();
+    }
+  }, [navigate]);
 
   const handleDeviceClick = (device) => {
     setSelectedDevice(device);

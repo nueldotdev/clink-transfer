@@ -25,19 +25,33 @@ app.get('/', (req, res) => {
 
 
 // Create user document
-app.post('/user-signup', async (req, res) => {
+app.post('/signup-and-login', async (req, res) => {
   const data = req.body;
-  console.log(data)
+  console.log(data);
 
   try {
+    // Create user
     const user = await pb.collection('users').create(data);
-    console.log("User: ", user)
-    res.json({ message: 'User created successfully', user });
+    console.log("User created:", user);
+
+    // Log in user
+    const authData = await pb.collection('users').authWithPassword(data.email, data.password);
+    console.log("User logged in:", authData);
+
+    // Send combined response
+    res.json({
+      message: 'User created and logged in successfully',
+      user: authData.record,
+      token: authData.token
+    });
   } catch (error) {
-    console.log(error);
-    res.status(error.status).json({ message: 'Failed to create user', error: error.response });
+    console.error(error);
+    res.status(error.status || 500).json({
+      message: 'Failed to create or login user',
+      error: error.response?.data || error.message
+    });
   }
-})
+});
 
 
 // User login
@@ -118,7 +132,7 @@ app.get('/users/:id', async (req, res) => {
   const { id } = req.params;
   try {
     const record = await pb.collection('users').getOne(id);
-    res.json({message: 'User fetched successfully', record})
+    res.json({message: 'User fetched successfully', user: record})
   } catch (error) {
     console.log(error.response)
     res.status(500).json({ message: 'Failed to fetch user', error: error.response });

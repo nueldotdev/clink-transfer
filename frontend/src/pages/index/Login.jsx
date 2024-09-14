@@ -5,6 +5,7 @@ import { Button } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import Logo from '../../components/Logo';
 import axios from 'axios';
+import api from '../../utils/axios';
 
 
 
@@ -41,13 +42,30 @@ const Login = () => {
   })
 
   const handleSubmit = async () => {
+  
+    try {
+      const response = await api.post('/user-login', details)
+      console.log(response)
+      notifications.show({
+        title: 'Success',
+        message: 'Userlogged in successfully! 🎉',
+        color: 'green',
+        position: 'top-right'
+      });
+
+      localStorage.setItem('id', response.data.record.id)
+      
+    } catch (error) {
+      
+    }
+
       axios.post('http://localhost:5500/user-login', details)
         .then((res) => {
           console.log(res)
           setLoading(false)
           notifications.show({
             title: 'Success',
-            message: 'User logged in successfully! 🎉',
+            message: 'User logged in successfully',
             color: 'green',
             position: 'top-right',
           });
