@@ -5,7 +5,7 @@ import { Button } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
 import Logo from "../../components/Logo";
 import api from "../../utils/axios";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { UserContext } from "../../context/UserContext";
 
 

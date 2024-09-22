@@ -1,6 +1,6 @@
 import platform, { product } from 'platform';
 import React, { useState, useContext } from 'react'
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 
 import { Button } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
