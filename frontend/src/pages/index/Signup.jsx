@@ -155,6 +155,9 @@ const Signup = () => {
             <p>Submit</p>
           </Button>
         </div>
+        <div className="text-center">
+          <p>Already have an account? <Link to="/login">Login</Link></p>
+        </div>
       </div>
     </div>
   );

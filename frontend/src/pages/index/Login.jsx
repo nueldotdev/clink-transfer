@@ -122,6 +122,9 @@ const Login = () => {
             <p>Submit</p>
           </Button>
         </div>
+        <div className="text-center">
+          <p>Don't have an account? <Link to="/register">Register</Link></p>
+        </div>
       </div>
     </div>
   );
