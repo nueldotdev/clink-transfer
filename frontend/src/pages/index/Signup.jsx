@@ -156,7 +156,7 @@ const Signup = () => {
           </Button>
         </div>
         <div className="text-center">
-          <p>Already have an account? <Link to="/login">Login</Link></p>
+          <p>Already have an account? <Link to="/login" className="text-brand font-semibold">Login</Link></p>
         </div>
       </div>
     </div>
