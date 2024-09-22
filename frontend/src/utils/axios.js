@@ -20,15 +20,31 @@ api.interceptors.request.use(
 
 api.interceptors.response.use(
   (response) => response,
-  (error) => {
+  async (error) => {
     if (error.response.status === 401) {
-      localStorage.removeItem('authToken');
-      localStorage.removeItem('user_id');
-      window.location.href = '/login';
+      // Check if the authToken is valid
+      if (!await testAuthToken()) {
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('user_id');
+        localStorage.removeItem('first_name');
+        localStorage.removeItem('last_name');
+        localStorage.removeItem('email');
+      }
     }
     return Promise.reject(error);
   }
 );
 
+const testAuthToken = async () => {
+  try {
+    const response = await api.get('/test-auth');
+    return true; // Token is valid
+  } catch (error) {
+    if (error.response && error.response.status === 401) {
+      return false; // Token is invalid or expired
+    }
+    throw error; // Re-throw other errors
+  }
+};
 
 export default api;

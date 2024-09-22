@@ -1,12 +1,14 @@
 import { createContext, useState } from "react";
-import axios from "axios";
 import api from "../utils/axios";
 import { notifications } from "@mantine/notifications";
 
 export const UserContext = createContext();
 
 export const UserProvider = ({ children }) => {
+  
   const [user, setUser] = useState(null);
+  const [devices, setDevices] = useState([]);
+  const [currentDevice, setCurrentDevice] = useState(null);
 
   const [details, setDetails] = useState({
     first_name: "",
@@ -14,7 +16,7 @@ export const UserProvider = ({ children }) => {
     email: "",
     password: "",
     passwordConfirm: "",
-    emaillVisibility: true,
+    emailVisibility: true,
   });
 
   /**

@@ -49,12 +49,12 @@ function getDeviceInfo() {
 
 
   if (platform.product) {
-      deviceInfo.deviceType = product;
+      deviceInfo.deviceType = platform.product;
   } else {
     deviceInfo.deviceType = 'Desktop';
   }
 
-  return platform;
+  return deviceInfo;
 }
 
 
@@ -73,6 +73,12 @@ const HomePage = () => {
     const user_id = localStorage.getItem('user_id');
 
     if (!token || !user_id) {
+      localStorage.removeItem('authToken');
+      localStorage.removeItem('user_id');
+      localStorage.removeItem('first_name');
+      localStorage.removeItem('last_name');
+      localStorage.removeItem('email');
+
       navigate('/login');
     } else {
       const getUserInfo = async () => {
@@ -82,7 +88,7 @@ const HomePage = () => {
       }
       getUserInfo();
     }
-  }, [navigate]);
+  }, [navigate, setUser]);
 
   const handleDeviceClick = (device) => {
     setSelectedDevice(device);

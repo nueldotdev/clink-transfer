@@ -1,9 +1,20 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Logo from "../../components/Logo";
+import api from "../../utils/axios";
+import { testAuthToken } from "../../utils/functions";
 
 const IndexPage = () => {
   const navigate = useNavigate();
+  const [isAuthenticated, setIsAuthenticated] = useState(null);
+
+  useEffect(() => {
+    const auth = testAuthToken();
+    console.log(auth)
+    if (auth === true) {
+      navigate('/app');
+    }
+  }, [navigate]);
 
   return (
     <div className="h-screen w-full overflow-y-auto overflow-x-hidden bg-sky-200">
@@ -14,7 +25,7 @@ const IndexPage = () => {
             <Logo />
           </div>
           <div className="w-full flex items-center justify-end gap-x-2">
-            <button className="login-btn">
+            <button className="login-btn" onClick={() => navigate('/login')}>
               <p className="max-md:mx-2">Login</p>
             </button>
             <button className="sign-btn" onClick={() => navigate('/signup')}>

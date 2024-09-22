@@ -12,6 +12,14 @@ import Account from '../pages/app/Account'
 import Login from '../pages/index/Login'
 
 
+/**
+ * AppRouter is the main router component for the app. It renders all the
+ * routes for the app, including the index route, signup route, login route,
+ * email sent route, and verify route. It also renders the Layout component
+ * for the app routes, which includes the navigation bar and the footer.
+ * 
+ * @returns {JSX.Element} The JSX element for the AppRouter component.
+ */
 const AppRouter = () => {
   return (
     <Router>

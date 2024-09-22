@@ -39,7 +39,6 @@ const Signup = () => {
 
   const handleSubmit = async () => {
     if (details.password === details.passwordConfirm) {
-      setLoading(false);
       try {
         const response = await api.post("/signup-and-login", details);
 

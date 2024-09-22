@@ -1,10 +1,10 @@
 import PocketBase from 'pocketbase';
 import express from 'express';
 import cors from 'cors';
-
+import { usersRouter } from './routes/users.js';
 
 // Initialize PocketBase as Databse
-const pb = new PocketBase('http://127.0.0.1:8090');
+export const pb = new PocketBase('http://127.0.0.1:8090');
 const app = express();
 
 // Set CORS headers
@@ -18,8 +18,42 @@ app.use(express.json());
 // Server testing endpoint
 app.get('/', (req, res) => {
   res.json({
-    message: 'Server is up and running!'
+    message: 'Server is up and running!',
+    db: `${pb}`
   })
+});
+
+app.get('/test', async (req, res) => {
+  res.json({
+    message: 'Test endpoint is working',
+    authStore: pb.authStore
+  })
+})
+
+// Test auth endpoint
+app.get('/test-auth', async (req, res) => {
+  console.log("Test auth endpoint called")
+
+  const authHeader = req.headers.authorization;
+  if (!authHeader) {
+    return res.status(401).json({ message: 'No authorization header provided' });
+  }
+
+  const token = authHeader.split(' ')[1];
+  if (!token) {
+    return res.status(401).json({ message: 'No token provided' });
+  }
+
+  try {
+    // Verify the token
+    console.log("Verifying token")
+    await pb.collection('users').authRefresh();
+    res.json({ message: 'Token is valid' });
+    console.log("Token is valid")
+  } catch (error) {
+    console.error('Auth error:', error);
+    res.status(401).json({ message: 'Invalid or expired token' });
+  }
 });
 
 
@@ -115,30 +149,6 @@ app.post('/user-logout', async (req, res) => {
 })
 
 
-// Fetch all users, admin only
-app.get('/users', async (req, res) => {
-  try {
-    const records = await pb.collection('users').getFullList();
-    res.json({message: 'Users fetched successfully', records})
-  } catch (error) {
-    console.log(error.response)
-    res.status(error.status).json({ message: 'Failed to fetch users', error: error.response });
-  }
-})
-
-
-// Fetch single user, admin and requested user (the user logged in and with the same id being requested) only
-app.get('/users/:id', async (req, res) => {
-  const { id } = req.params;
-  try {
-    const record = await pb.collection('users').getOne(id);
-    res.json({message: 'User fetched successfully', user: record})
-  } catch (error) {
-    console.log(error.response)
-    res.status(500).json({ message: 'Failed to fetch user', error: error.response });
-  }
-})
-
 
 // Admin login (unused)
 app.post('/admin/login', async (req, res) => {
@@ -151,6 +161,10 @@ app.post('/admin/login', async (req, res) => {
     res.status(400).json({ message: 'Failed to log in admin', error: error.response });
   }
 })
+
+
+app.use('/users', usersRouter);
+
 
 // Running server
 app.listen(5500, () => {
