@@ -11,12 +11,10 @@ export const UserProvider = ({ children }) => {
   const [currentDevice, setCurrentDevice] = useState(null);
 
   const [details, setDetails] = useState({
-    first_name: "",
-    last_name: "",
+    firstName: "",
+    lastName: "",
     email: "",
-    password: "",
-    passwordConfirm: "",
-    emailVisibility: true,
+    password: ""
   });
 
   /**

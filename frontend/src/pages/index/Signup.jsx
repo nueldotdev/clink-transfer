@@ -33,12 +33,22 @@ function getDeviceInfo() {
 const Signup = () => {
   const { details, handleInputChange, reqVerification, user, setUser } =
     useContext(UserContext);
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
   const navigate = useNavigate();
 
   const handleSubmit = async () => {
-    if (details.password === details.passwordConfirm) {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(details.email)) {
+      setLoading(false);
+      notifications.show({
+        title: "Error",
+        message: "Invalid email format 💔",
+        color: "red",
+        position: "top-right",
+      });
+    }  else if (details.password === confirmPassword) {
       try {
         const response = await api.post("/signup-and-login", details);
 
@@ -98,22 +108,22 @@ const Signup = () => {
               type="text"
               className="input-bx"
               placeholder="First Name"
-              name="first_name"
-              value={details.first_name}
+              name="firstName"
+              value={details.firstName}
               onChange={handleInputChange}
             />
             <input
               type="text"
               className="input-bx"
               placeholder="Last Name"
-              name="last_name"
-              value={details.last_name}
+              name="lastName"
+              value={details.lastName}
               onChange={handleInputChange}
             />
           </div>
           <div className="w-full">
             <input
-              type="text"
+              type="email"
               className="input-bx"
               placeholder="Your Email"
               name="email"
@@ -137,8 +147,8 @@ const Signup = () => {
               className="input-bx"
               placeholder="Confirm Password"
               name="passwordConfirm"
-              value={details.passwordConfirm}
-              onChange={handleInputChange}
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
             />
           </div>
         </div>
