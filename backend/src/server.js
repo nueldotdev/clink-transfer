@@ -1,22 +1,23 @@
 require('dotenv').config();
 const mongoose = require('mongoose');
 const express = require('express');
-
 const bcrypt = require('bcrypt');
-const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
-
 const cors = require('cors');
 
 
-const { generateVerificationToken } = require('./services/functions.js');
+const { generateVerificationToken, matchKeys } = require('./services/functions.js');
 const { sendVerificationEmail } = require('./services/mailing.js');
 
 const User = require('./schema/userSchema.js');
 const usersRouter = require('./routes/users.js');
 
-// Get database URL from .env file
-const uri = process.env.DB_URL;
+// Get environment variables from .env
+const uri = process.env.DB_URL; // DB Url
+const secretKey = process.env.JWT_SECRET; // JWT Secret
+
+// Create set for expired tokens
+const tokenBlacklist = new Set();
 
 // Initialize Express app
 const app = express();
@@ -28,19 +29,21 @@ app.use(cors({
 
 app.use(express.json());
 
+app.use((req, res, next) => {
+  const token = req.headers.authorization && req.headers.authorization.split(' ')[1];
 
-// Server testing endpoint
-app.get('/', (req, res) => {
-  res.json({
-    message: 'Server is up and running!',
-  })
+  if (token) {
+    const checkToken = jwt.verify(token, secretKey);
+
+    if (checkToken) {
+      next();
+    } else {
+      return res.sendStatus(401);
+    }
+  }
+
+  next();
 });
-
-app.get('/test', async (req, res) => {
-  res.json({
-    message: 'Test endpoint is working',
-  })
-})
 
 // Test auth endpoint
 app.get('/test-auth', async (req, res) => {
@@ -76,33 +79,30 @@ app.post('/signup-and-login', async (req, res) => {
 
   try {
     // Create user
-    const hashedPassword = await bcrypt.hash(data.password, 10);
-    const { token, tokenExpires } = generateVerificationToken();
-
+    const hashedPassword = bcrypt.hashSync(data.password, 10);
 
     const newUser = new User({
       firstName: data.firstName,
       lastName: data.lastName,
       email: data.email,
-      password: hashedPassword,
-      verificationToken: token,
-      tokenExpires: tokenExpires
+      password: hashedPassword
     })
 
+    // run password matching test
+    const { matched } = await matchKeys(data.password, hashedPassword);
+    console.log("Matched: ", matched);
+    
+    if (!matched) {
+      return res.status(401).json({ message: 'Error creating user' });
+    }
+
     const saveUser = await newUser.save();
-    console.log("User created:", saveUser);
-    res.json({message: 'User created successfully', user: saveUser})
 
-    // Log in user
-    // const authData = await pb.collection('users').authWithPassword(data.email, data.password);
-    // console.log("User logged in:", authData);
+    // Generate JWT token
+    const token = jwt.sign({ user_id: saveUser._id, email: saveUser.email }, secretKey, { expiresIn: '1d' });
 
-    // // Send combined response
-    // res.json({
-    //   message: 'User created and logged in successfully',
-    //   user: authData.record,
-    //   token: authData.token
-    // });
+    res.json({ message: 'User created successfully', user: saveUser, token })
+    
   } catch (error) {
     console.error(error);
     res.status(error.status || 500).json({
@@ -116,12 +116,32 @@ app.post('/signup-and-login', async (req, res) => {
 // User login
 app.post('/user-login', async (req, res) => {
   const data = req.body;
-  console.log(data)
+  console.log("===== User login requested =====");
 
   try {
-    const user = await pb.collection('users').authWithPassword(data.email, data.password);
-    console.log("User: ", user)
-    res.json({ message: 'User logged in successfully', user });
+    console.log("Getting user")
+    // Find the user by email
+    const user = await User.findOne({ email: data.email });
+
+    if (!user) {
+      console.log({err: "User not found!"})
+      return res.status(404).json({message: "Invalid email or password!"})
+    }
+
+    console.log("Checking password")
+    // Check password
+    const { matched } = await matchKeys(data.password, user.password);
+    if (!matched) {
+      console.log({err: "Password not matching!"});
+      return res.status(401).json({ message: "Invalid email or password!" })
+    }
+
+    // Generate JWT token
+    const token = jwt.sign({ user_id: user._id, email: user.email }, secretKey, { expiresIn: '1d' });
+
+ 
+    // Return User Obj with token
+    res.json({ message: 'User logged in successfully', user, token });
   } catch (error) {
     console.log(error);
     res.status(error.status).json({ message: 'Failed to login user', error: error.response });
@@ -145,8 +165,8 @@ app.post('/verify-email', async (req, res) => {
       return res.status(400).json({ message: 'Email already verified' });
     }
 
-    const { token, tokenExpires } = generateVerificationToken();
-    user.verificationToken = token;
+    const { verifyToken, tokenExpires } = generateVerificationToken();
+    user.verificationToken = verifyToken;
     user.tokenExpires = tokenExpires;
     await user.save();
 
@@ -169,7 +189,7 @@ app.post('/verify-email-token', async (req, res) => {
     const user = await User.findOne({ verificationToken: data.token });
     
     if (!user) {
-      return res.status(404).json({ message: 'Invalid or expired token' });
+      return res.status(401).json({ message: 'Invalid or expired token' });
     }
     
     user.isVerified = true;
@@ -178,15 +198,12 @@ app.post('/verify-email-token', async (req, res) => {
     await user.save();
 
     console.log("User verified: ", user);
-    res.json({ message: 'User Verified Successfully!', user });
+    res.status(200).json({ message: 'User Verified Successfully!', user });
     
   } catch (error) {
-    console.log("Error details: ", error);  // Log the full error object
+    console.log("Error details: ");
 
-    res.status(error.status || 500).json({
-      message: 'Failed to verify user',
-      error: error.response || 'Unknown error',
-    });
+    res.status(500).json({ message: 'Failed to Verify User', error: error.message });
   }
 });
 
@@ -195,8 +212,29 @@ app.post('/verify-email-token', async (req, res) => {
 
 // User logout endpoint (not fully implemented)
 app.post('/user-logout', async (req, res) => {
-  pb.authStore.clear();
-  res.json({message: 'User logged out successfully'})
+
+  const authHeader = req.headers.authorization;
+  if (!authHeader) {
+    return res.status(401).json({ message: 'No authorization header provided' });
+  }
+
+  const token = authHeader.split(' ')[1];
+  if (!token) {
+    return res.status(401).json({ message: 'No token provided' });
+  }
+
+
+  if (token) {
+    try {
+      const decoded = jwt.decode(token);
+      decoded.exp = Math.floor(Date.now() / 1000) - 1;
+      return res.json({message: 'User logged out successfully'})
+    } catch (error) {
+      console.log(error);
+      return res.status(401).json({ message: 'Invalid token' });
+    }
+  }
+
 })
 
 

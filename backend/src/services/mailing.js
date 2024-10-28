@@ -1,4 +1,10 @@
+require('dotenv').config();
 const nodemailer = require('nodemailer');
+
+const prod = process.env.prod;
+const dev = process.env.dev;
+
+const status = prod;
 
 const transporter = nodemailer.createTransport({
   service: 'Gmail', // Or use any other email provider
@@ -10,13 +16,15 @@ const transporter = nodemailer.createTransport({
 
 // Send email function
 async function sendVerificationEmail(user) {
-  const url = `https://clink0.vercel.app/verify-email?token=${user.verificationToken}`;
+  const url = `${status}verify?token=${user.verificationToken}`;
   
   const mailOptions = {
     from: process.env.EMAIL_USER,
     to: user.email,
     subject: 'Clink - Email Verification',
-    html: `<h3>Welcome to Clink!</h3>
+    html: `<h1>Hi, ${user.firstName}</h1>
+    <br>
+    <h3>Welcome to Clink!</h3>
     <p style="margin-bottom: 10px;">Thanks for joining us!</p>
     <p style="margin-bottom: 10px;">Please verify your email by clicking the link below:</p>
     <br>
