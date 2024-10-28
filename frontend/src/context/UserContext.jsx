@@ -6,7 +6,14 @@ export const UserContext = createContext();
 
 export const UserProvider = ({ children }) => {
   
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    isVerified: "",
+    createdAt: Date()
+  });
+  
   const [devices, setDevices] = useState([]);
   const [currentDevice, setCurrentDevice] = useState(null);
 

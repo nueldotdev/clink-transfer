@@ -8,8 +8,8 @@ const Account = () => {
   const { user, setUser } = useContext(UserContext);
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
-    first_name: '',
-    last_name: '',
+    firstName: '',
+    lastName: '',
     email: '',
   });
   const [isLoading, setIsLoading] = useState(false);
@@ -18,8 +18,8 @@ const Account = () => {
   useEffect(() => {
     if (user) {
       setFormData({
-        first_name: user.first_name || '',
-        last_name: user.last_name || '',
+        firstName: user.firstName || '',
+        lastName: user.lastName || '',
         email: user.email || '',
       });
     }
@@ -60,24 +60,24 @@ const Account = () => {
       </div>
       <form onSubmit={handleSubmit} className="max-w-md">
         <div className="mb-4">
-          <label htmlFor="first_name" className="block mb-2">First Name</label>
+          <label htmlFor="firstName" className="block mb-2">First Name</label>
           <input
             type="text"
-            id="first_name"
-            name="first_name"
-            value={formData.first_name}
+            id="firstName"
+            name="firstName"
+            value={formData.firstName}
             onChange={handleChange}
             className="w-full px-3 py-2 border rounded"
             required
           />
         </div>
         <div className="mb-4">
-          <label htmlFor="last_name" className="block mb-2">Last Name</label>
+          <label htmlFor="lastName" className="block mb-2">Last Name</label>
           <input
             type="text"
-            id="last_name"
-            name="last_name"
-            value={formData.last_name}
+            id="lastName"
+            name="lastName"
+            value={formData.lastName}
             onChange={handleChange}
             className="w-full px-3 py-2 border rounded"
             required

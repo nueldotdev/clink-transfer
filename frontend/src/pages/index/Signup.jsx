@@ -8,6 +8,7 @@ import Logo from '../../components/Logo';
 import axios from 'axios';
 import { UserContext } from '../../context/UserContext'
 import api from "../../utils/axios";
+import { userLoggedIn } from '../../utils/functions';
 
 function getDeviceInfo() {
   const deviceInfo = {
@@ -33,7 +34,7 @@ function getDeviceInfo() {
 const Signup = () => {
   const { details, handleInputChange, reqVerification, user, setUser } =
     useContext(UserContext);
-  const [confirmPassword, setConfirmPassword] = useState("");
+  // const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
   const navigate = useNavigate();
@@ -52,8 +53,7 @@ const Signup = () => {
       try {
         const response = await api.post("/signup-and-login", details);
 
-        localStorage.setItem("user_id", response.data.user.id);
-        localStorage.setItem("authToken", response.data.token);
+        userLoggedIn(response.data);
 
         notifications.show({
           title: "Success",
@@ -131,7 +131,7 @@ const Signup = () => {
               onChange={handleInputChange}
             />
           </div>
-          <div className="w-full">
+          {/* <div className="w-full">
             <input
               type="password"
               className="input-bx"
@@ -150,7 +150,7 @@ const Signup = () => {
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
             />
-          </div>
+          </div> */}
         </div>
         <div className="flex justify-center">
           <Button

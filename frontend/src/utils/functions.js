@@ -23,16 +23,41 @@ export const logoutUser = async () => {
     const logoutResponse = await api.post('/user-logout');
     console.log(logoutResponse);
     
-    localStorage.removeItem('authToken');
-    localStorage.removeItem('first_name');
-    localStorage.removeItem('last_name');
-    localStorage.removeItem('email');
-    localStorage.removeItem('user_id');
+    localStorage.clear()
 
     return true;
 
   } catch (error) {
     console.error('Failed to logout:', error);
     return false;
+  }
+}
+
+export const userLoggedIn = async (data) => {
+  localStorage.setItem("user_id", data.user._id);
+  localStorage.setItem("authToken", data.token);
+}
+
+export const getUserId = async () => {
+  const user_id = localStorage.getItem('user_id');
+
+  if (!user_id) {
+    return null;
+  }
+
+  return { user_id }
+}
+
+export const getUserInfo = async () => {
+  const { user_id } = getUserId();
+
+  if (!user_id) {
+    return null
+  }
+
+  try {
+    const info = await api.get('/get-user-info', )
+  } catch (err) {
+
   }
 }

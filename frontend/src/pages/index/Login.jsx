@@ -45,24 +45,25 @@ const Login = () => {
   });
 
   const handleSubmit = async () => {
+    setLoading(true)
     try {
       const response = await api.post("/user-login", details);
       console.log(response);
       notifications.show({
         title: "Success",
-        message: "Userlogged in successfully! 🎉",
+        message: "User logged in successfully! 🎉",
         color: "green",
         position: "top-right",
       });
       setLoading(false);
       
-      localStorage.setItem("user_id", response.data.user.record.id);
-      localStorage.setItem("authToken", response.data.user.token);
+      userLoggedIn(response.data);
+      
       navigate("/app");
 
 
     } catch (error) {
-      console.log(err);
+      console.log(error);
       setLoading(false);
       notifications.show({
         title: "Error",
@@ -70,6 +71,8 @@ const Login = () => {
         color: "red",
         position: "top-right",
       });
+    } finally {
+      setLoading(false)
     }
   };
 
@@ -115,7 +118,6 @@ const Login = () => {
             size="lg"
             className="sign-free py-3 hover:bg-blue-800"
             onClick={() => {
-              setLoading(true);
               handleSubmit();
             }}
           >

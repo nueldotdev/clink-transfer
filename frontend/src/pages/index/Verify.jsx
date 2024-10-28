@@ -10,7 +10,7 @@ function Verify() {
 
   const navigate = useNavigate();
   const [result, setResult] = useState(null);
-  const [empty, setEmpty] = useState(false);
+  const [empty, setEmpty] = useState(true);
 
   useEffect(() => {
     const queryParams = new URLSearchParams(window.location.search);
@@ -18,9 +18,9 @@ function Verify() {
 
     if (token) {
       authenticateUser(token);
-    } else {
-      setEmpty(true);
+      setEmpty(false);
     }
+
   }, []);
   const authenticateUser = async (token) => {
     try {
@@ -39,7 +39,7 @@ function Verify() {
       <div className="p-6 w-1/3 max-md:w-full max-md:border-0 border border-brand bg-white rounded-xl">
         <div className="text-center flex flex-col justify-center items-center gap-y-8">
           <Logo />
-          {!empty ? (
+          {empty === false ? (
             <>
               {result === null ? (
                 <>
