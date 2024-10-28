@@ -4,7 +4,7 @@ const nodemailer = require('nodemailer');
 const prod = process.env.prod;
 const dev = process.env.dev;
 
-const status = prod;
+const status = dev;
 
 const transporter = nodemailer.createTransport({
   service: 'Gmail', // Or use any other email provider
