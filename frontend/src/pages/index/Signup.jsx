@@ -49,44 +49,39 @@ const Signup = () => {
         color: "red",
         position: "top-right",
       });
-    }  else if (details.password === confirmPassword) {
+
+      return false;
+    }
+
+    try {
+      const response = await api.post("/signup-and-login", details);
+
+      userLoggedIn(response.data);
+      console.log(response.data)
+
+
+      notifications.show({
+        title: "Success",
+        message: "User created successfully! 🎉",
+        color: "green",
+        position: "top-right",
+      });
+
       try {
-        const response = await api.post("/signup-and-login", details);
-
-        userLoggedIn(response.data);
-
-        notifications.show({
-          title: "Success",
-          message: "User created successfully! 🎉",
-          color: "green",
-          position: "top-right",
-        });
-
-        try {
-          const verify = await reqVerification();
-          console.log(verify.data);
-          navigate("/email-sent");
-        } catch (error) {
-          console.error(error.response.data);
-        }
+        const verify = await reqVerification();
+        console.log(verify.data);
+        navigate("/verify");
       } catch (error) {
-        console.log(error);
-
-        setLoading(false);
-
-        notifications.show({
-          title: "Error",
-          message: "Failed to create user 💔",
-          color: "red",
-          position: "top-right",
-        });
+        console.error(error);
       }
-    } else {
-      console.log("Passwords do not match");
+    } catch (error) {
+      console.log(error);
+
       setLoading(false);
+
       notifications.show({
         title: "Error",
-        message: "Passwords do not match 💔",
+        message: "Failed to create user 💔",
         color: "red",
         position: "top-right",
       });
@@ -97,7 +92,7 @@ const Signup = () => {
 
   return (
     <div className="h-screen w-full flex justify-center items-center bg-light bg-cover bg-no-repeat bg-center bg-[url('/bg/entry.jpg')]">
-      <div className="px-4 py-6 w-1/3 max-md:w-full flex flex-col justify-center gap-y-8 bg-white rounded-xl">
+      <div className="action-box">
         <div className="text-center">
           <Logo />
           <p className="font-semibold text-lg">Create your account</p>
@@ -131,26 +126,6 @@ const Signup = () => {
               onChange={handleInputChange}
             />
           </div>
-          {/* <div className="w-full">
-            <input
-              type="password"
-              className="input-bx"
-              placeholder="Password"
-              name="password"
-              value={details.password}
-              onChange={handleInputChange}
-            />
-          </div>
-          <div className="w-full">
-            <input
-              type="password"
-              className="input-bx"
-              placeholder="Confirm Password"
-              name="passwordConfirm"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-            />
-          </div> */}
         </div>
         <div className="flex justify-center">
           <Button

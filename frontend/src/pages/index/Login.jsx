@@ -85,7 +85,7 @@ const Login = () => {
 
   return (
     <div className="h-screen w-full flex justify-center items-center bg-light bg-cover bg-no-repeat bg-center bg-[url('/bg/entry.jpg')]">
-      <div className="px-4 py-6 w-1/3 max-md:w-full flex flex-col justify-center gap-y-8 bg-white rounded-xl">
+      <div className="action-box">
         <div className="text-center">
           <Logo />
           <p className="font-semibold text-lg">Log in to your account</p>
@@ -98,16 +98,6 @@ const Login = () => {
               placeholder="Your Email"
               name="email"
               value={details.email}
-              onChange={handleInputChange}
-            />
-          </div>
-          <div className="w-full">
-            <input
-              type="password"
-              className="input-bx"
-              placeholder="Password"
-              name="password"
-              value={details.password}
               onChange={handleInputChange}
             />
           </div>

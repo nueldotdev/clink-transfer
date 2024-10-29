@@ -6,8 +6,8 @@ const jwt = require('jsonwebtoken');
 const cors = require('cors');
 
 
-const { generateVerificationToken, matchKeys } = require('./services/functions.js');
-const { sendVerificationEmail } = require('./services/mailing.js');
+const { generateEntryCode, matchKeys, assignCode } = require('./services/functions.js');
+const { sendVerificationEmail, sendEntryEmail } = require('./services/mailing.js');
 
 const User = require('./schema/userSchema.js');
 const usersRouter = require('./routes/users.js');
@@ -29,21 +29,42 @@ app.use(cors({
 
 app.use(express.json());
 
+// JWT authentication middleware
 app.use((req, res, next) => {
-  const token = req.headers.authorization && req.headers.authorization.split(' ')[1];
+  // List of routes to skip middleware checks 
+  const openRoutes = ['/signup-and-login', '/user-login', '/verify-entry-code', '/verify-email'];
 
-  if (token) {
-    const checkToken = jwt.verify(token, secretKey);
-
-    if (checkToken) {
-      next();
-    } else {
-      return res.sendStatus(401);
-    }
+  // Check if the request path is in the list of open routes
+  if (openRoutes.includes(req.path)) {
+    return next(); // Skip middleware for these routes
   }
 
-  next();
+  // Get the token from authorization header
+  const token = req.headers.authorization && req.headers.authorization.split(' ')[1];
+
+  // If token exists, verify it
+  if (token) {
+    try {
+      const checkToken = jwt.verify(token, secretKey);
+      if (checkToken) {
+        return next();
+      }
+    } catch (error) {
+      console.error("Token verification error:", error);
+      return res.status(401).json({ message: 'Expired Authtoken' });
+    }
+  } else {
+    // Send 401 Unauthorized if no token is found
+    return res.sendStatus(401);
+  }
 });
+
+// Functions
+
+
+
+
+
 
 // Test auth endpoint
 app.get('/test-auth', async (req, res) => {
@@ -78,45 +99,39 @@ app.post('/signup-and-login', async (req, res) => {
   console.log(data);
 
   try {
-    // Create user
-    const hashedPassword = bcrypt.hashSync(data.password, 10);
 
     const newUser = new User({
       firstName: data.firstName,
       lastName: data.lastName,
-      email: data.email,
-      password: hashedPassword
-    })
+      email: data.email
+    });
 
-    // run password matching test
-    const { matched } = await matchKeys(data.password, hashedPassword);
-    console.log("Matched: ", matched);
-    
-    if (!matched) {
-      return res.status(401).json({ message: 'Error creating user' });
-    }
-
+    // Save user
     const saveUser = await newUser.save();
 
     // Generate JWT token
     const token = jwt.sign({ user_id: saveUser._id, email: saveUser.email }, secretKey, { expiresIn: '1d' });
 
-    res.json({ message: 'User created successfully', user: saveUser, token })
+    // Send response and return immediately;
+    console.log("Finished signing up and logging in user")
+
+    return res.status(200).json({ message: 'User signed up and logged in successfully', user: saveUser, token });
     
   } catch (error) {
     console.error(error);
-    res.status(error.status || 500).json({
+
+    // Ensure only one response by using return here as well
+    return res.status(error.status).json({
       message: 'Failed to create or login user',
-      error: error.response?.data || error.message
+      error: error.message
     });
   }
 });
 
 
 // User login
-app.post('/user-login', async (req, res) => {
+app.post('/user-login-req', async (req, res) => {
   const data = req.body;
-  console.log("===== User login requested =====");
 
   try {
     console.log("Getting user")
@@ -128,26 +143,32 @@ app.post('/user-login', async (req, res) => {
       return res.status(404).json({message: "Invalid email or password!"})
     }
 
-    console.log("Checking password")
-    // Check password
-    const { matched } = await matchKeys(data.password, user.password);
-    if (!matched) {
-      console.log({err: "Password not matching!"});
-      return res.status(401).json({ message: "Invalid email or password!" })
+    const result = await assignCode(user);
+    console.log(result);
+
+    if (!result) {
+      return res.status(500).json({ message: 'Failed to send verification email' });
     }
 
-    // Generate JWT token
-    const token = jwt.sign({ user_id: user._id, email: user.email }, secretKey, { expiresIn: '1d' });
+    await sendEntryEmail(user);
 
+    // Generate JWT token
+    // const token = jwt.sign({ user_id: user._id, email: user.email }, secretKey, { expiresIn: '1d' });
+
+    return res.status(200).json({ message: "Login code sent successfully!" })
  
     // Return User Obj with token
-    res.json({ message: 'User logged in successfully', user, token });
+    // res.json({ message: 'User logged in successfully', user, token });
   } catch (error) {
     console.log(error);
     res.status(error.status).json({ message: 'Failed to login user', error: error.response });
   }
 })
 
+
+app.post('user-login', async (req, res) => {
+  const data = req.body;
+})
 
 // Email verification endpoint
 app.post('/verify-email', async (req, res) => {
@@ -165,10 +186,11 @@ app.post('/verify-email', async (req, res) => {
       return res.status(400).json({ message: 'Email already verified' });
     }
 
-    const { verifyToken, tokenExpires } = generateVerificationToken();
-    user.verificationToken = verifyToken;
-    user.tokenExpires = tokenExpires;
-    await user.save();
+    const result = await assignCode(user);
+    console.log(result);
+    if (!result) {
+      return res.status(500).json({ message: 'Failed to send verification email' });
+    }
 
     await sendVerificationEmail(user);
 
@@ -181,19 +203,19 @@ app.post('/verify-email', async (req, res) => {
 
 
 // Email token verification endpoint
-app.post('/verify-email-token', async (req, res) => {
+app.post('/verify-entry-code', async (req, res) => {
   const data = req.body;
   console.log("Data received: ", data);
 
   try {
-    const user = await User.findOne({ verificationToken: data.token });
+    const user = await User.findOne({ entryCode: data.code, email: data.email });
     
     if (!user) {
-      return res.status(401).json({ message: 'Invalid or expired token' });
+      return res.status(401).json({ message: 'Invalid or expired code' });
     }
     
     user.isVerified = true;
-    user.verificationToken = "";
+    user.entryCode = "";
     user.tokenExpires = null;
     await user.save();
 

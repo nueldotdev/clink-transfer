@@ -20,6 +20,18 @@ api.interceptors.request.use(
 );
 
 
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response.data.message === 'Expired Authtoken' && error.response.status === 401) {
+      localStorage.clear()
+      window.location.href = '/login';
+    }
+    return Promise.reject(error);
+  }
+);
+
+
 const testAuthToken = async () => {
   try {
     const response = await api.get('/test-auth');
