@@ -20,8 +20,7 @@ export const UserProvider = ({ children }) => {
   const [details, setDetails] = useState({
     firstName: "",
     lastName: "",
-    email: "",
-    password: ""
+    email: ""
   });
 
   /**
@@ -37,12 +36,6 @@ export const UserProvider = ({ children }) => {
       ...prevState,
       [name]: value,
     }));
-
-    // If the field is the password or confirm password, do not store it
-    if (name !== "passwordConfirm" && name !== "password") {
-      // Store the value in local storage.
-      localStorage.setItem(name, value);
-    }
   };
 
   /**

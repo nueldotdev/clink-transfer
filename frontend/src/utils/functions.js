@@ -34,8 +34,9 @@ export const logoutUser = async () => {
 }
 
 export const userLoggedIn = async (data) => {
-  localStorage.setItem("user_id", data.user._id);
   localStorage.setItem("authToken", data.token);
+  localStorage.setItem("user_id", data.user._id);
+  localStorage.setItem("email", data.user.email);
 }
 
 export const getUserId = async () => {

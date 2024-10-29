@@ -1,16 +1,18 @@
 require('dotenv').config();
 const crypto = require('crypto');
 const bcrypt = require('bcrypt');
+const { sendEntryEmail } = require('./mailing');
 
 
 
 const secretKey = process.env.JWT_SECRET; // JWT Secret
 
 // Function to create token and set expiration
-function generateVerificationToken() {
-  const verifyToken = crypto.randomBytes(32).toString('hex');
+function generateEntryCode() {
+  // const entryCode = crypto.randomBytes(6).toString('hex');
+  const entryCode = Math.floor(100000 + Math.random() * 900000);
   const tokenExpires = Date.now() + 3600000; // Token expires in 1 hour
-  return { verifyToken, tokenExpires };
+  return { entryCode, tokenExpires };
 }
 
 
@@ -28,6 +30,21 @@ function extractTokens(req) {
   const token = req.headers.authorization && req.headers.authorization.split(' ')[1];
   return { token };
 }
+
+
+
+
+async function assignCode(user) {
+  const { entryCode, tokenExpires } = generateEntryCode();
+  user.entryCode = entryCode;
+  user.tokenExpires = tokenExpires;
+
+  await user.save();
+
+  return true;
+}
+
+
 
 
 async function matchKeys(key, hashedKey) {
@@ -51,4 +68,4 @@ const findMatch = async () => {
   }
 }
 
-module.exports = { generateVerificationToken, matchKeys, verifyJWT };
+module.exports = { generateEntryCode, matchKeys, verifyJWT, assignCode };

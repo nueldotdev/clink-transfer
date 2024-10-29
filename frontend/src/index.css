@@ -29,6 +29,10 @@
     @apply rounded-md w-full p-2 placeholder:text-gray-400 text-black bg-neutral-100 focus:border-brand focus:outline-none border border-transparent
   }
 
+  .action-box {
+    @apply px-4 py-6 w-1/2 max-w-[450px] max-sm:w-full max-md:w-1/2 flex flex-col justify-center gap-y-8 bg-white rounded-xl border border-brand
+  }
+
   .shadow-box {
     box-shadow: 5px 5px 1px rgba(43, 42, 42, 0.212);
     transition: .3s;
@@ -56,6 +60,45 @@
     animation-delay: 0.5s;
 
     @apply font-bold text-2xl text-dark italic
+  }
+
+  .success-anim {
+    animation-name: success;
+    animation-duration: .6s;
+    animation-iteration-count: 1;
+  }
+
+  .error-anim {
+    animation-name: errors;
+    animation-duration: .6s;
+    animation-iteration-count: 1;
+  }
+
+  @keyframes errors {
+    0% {
+      transform: translateX(5px);
+    }
+    25% {
+      transform: translateX(-5px);
+    }
+    50% {
+      transform: translateX(5px);
+    }
+    75% {
+      transform: translateX(-5px);
+    }
+    100% {
+      transform: translateX(0);
+    }
+  }
+
+  @keyframes success {
+    from {
+      transform: scale(0) rotate(360deg);
+    }
+    to {
+      transform: scale(1) rotate(0deg);
+    }
   }
 
 

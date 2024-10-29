@@ -27,7 +27,7 @@ const AppRouter = () => {
         <Route index element={<IndexPage />} />
         <Route path='/signup' element={<Signup />} />
         <Route path='/login' element={<Login />} />
-        <Route path='/email-sent' element={<EmailPage />} />
+        <Route path='/code-sent' element={<EmailPage />} />
         <Route path='/verify' element={<Verify />} />
       </Routes>
       <Routes>

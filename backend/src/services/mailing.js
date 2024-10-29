@@ -16,20 +16,17 @@ const transporter = nodemailer.createTransport({
 
 // Send email function
 async function sendVerificationEmail(user) {
-  const url = `${status}verify?token=${user.verificationToken}`;
   
   const mailOptions = {
     from: process.env.EMAIL_USER,
     to: user.email,
     subject: 'Clink - Email Verification',
     html: `<h1>Hi, ${user.firstName}</h1>
-    <br>
     <h3>Welcome to Clink!</h3>
-    <p style="margin-bottom: 10px;">Thanks for joining us!</p>
-    <p style="margin-bottom: 10px;">Please verify your email by clicking the link below:</p>
+    <p>Thanks for joining us!</p>
+    <p>Please verify your email by typing the 6-digit code below into the website.</p>
     <br>
-    <a href="${url}" style="background-color: #007bff; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Verify Email</a>
-    <br>
+    <h2>${user.entryCode}</h2>
     <br>
     <p>Best regards,<br>The Clink Team</p>
     `
@@ -44,7 +41,32 @@ async function sendVerificationEmail(user) {
   }
 }
 
-// Usage
-// await sendVerificationEmail(newUser);
 
-module.exports = { sendVerificationEmail };
+
+async function sendEntryEmail(user) {
+  
+  const mailOptions = {
+    from: process.env.EMAIL_USER,
+    to: user.email,
+    subject: 'Clink - Login Requested!',
+    html: `<h1>Hi, ${user.firstName}</h1>
+    <h3>You just attempted a login!</h3>
+    <p>If this was you, please input the 6-digit code below into the website.</p>
+    <p>If this was not you, please ignore this email.</p>
+    <br>
+    <h2>${user.entryCode}</h2>
+    <br>
+    <p>Best regards,<br>The Clink Team</p>
+    `
+  };
+
+  try {
+    await transporter.sendMail(mailOptions);
+    console.log('Entry Code sent successfully');
+  } catch (error) {
+    console.error('Error sending entry code:', error);
+    throw new Error('Failed to send entry code: ' + error.message);
+  }
+}
+
+module.exports = { sendVerificationEmail, sendEntryEmail };
